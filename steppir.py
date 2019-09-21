@@ -5,14 +5,9 @@ class SteppIR:
     """
     Serial interface for controlling SteppIR controllers like SteppIR SDA 100.
 
-    Hook up a serial cable from the computer to Data OUT, see "SDA 100
-    Controller Operators Manual"
-    (https://consumer.steppir.com/wp-content/uploads/2011/10/operations-manual-SDA-100-rev-2-dec-12.pdf).
-    The controller must be in auto track mode.
-
-    See "Transceiver interface operation for Steppir"
-    (https://consumer.steppir.com/wp-content/uploads/2011/10/Transceiver-Interface-Operation-5-28-09.pdf)
-    for description of serial interface.
+    For details on the serial interface, see "Transceiver interface operation
+    for Steppir"
+    (https://consumer.steppir.com/wp-content/uploads/2011/10/Transceiver-Interface-Operation-5-28-09.pdf).
     """
 
     def __init__(self):
