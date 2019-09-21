@@ -6,7 +6,7 @@ Control your SDA100 controller using Python!
 Build/install instructions
 --------------------------
 
-The Python module is installed by:
+The Python module is installed locally by:
 
 ```
 python3 setup.py install --user
