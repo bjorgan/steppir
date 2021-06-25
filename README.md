@@ -29,6 +29,7 @@ Set the SDA-100 controller Data Out port to 1200 baud (more bulletproof).
 Library Functions
 -----------------
 
+```
 __init__()
 get_status()
 set_parameters()
@@ -42,6 +43,7 @@ set_serial_update_ON()
 set_serial_update_OFF()
 retract_antenna()
 calibrate_antenna()
+```
 
 See "steppir.py" for details on each one.
 
@@ -59,9 +61,9 @@ controller again.
 
 You'll sometimes see messages similar to this:
 
-'''
+```
 Didn't set direction, iteration: 1
-'''
+```
 
 That message means that the first time through the loop, the direction didn't
 take in the controller. The next iteration through the loop successfully set
