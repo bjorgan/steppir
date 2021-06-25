@@ -1,5 +1,6 @@
 import serial
 import struct
+import time
 
 
 """
@@ -8,6 +9,9 @@ Thanks to Asgeir Bjorgan for getting this thing started!
 The below was tested with a SteppIR SDA-100 controller.
 -- Curt Mills, WE7U
 
+
+NOTE: The controller must be in AUTOTRACK mode for serial control to work.
+Homing/Retracting the elements will take it out of AUTOTRACK mode.
 
 NOTE: For those remote'ing their SteppIR controller: It can remember the
 state of the power switch but takes up to 3 minutes to memorize the power
@@ -29,6 +33,10 @@ back all wires except for RXD/TXD/GND. I soldered those three wires to a
 DE-9 female connector and it worked great. The controller can be set to a
 baud rate of 1200 to 19.2k baud. Setting a higher baud rate results in an
 actual setting of 19.2k baud.
+
+NOTE: There can be as much as a 1 second delay from a SET command before
+variables are updated for a STATUS command. There should also be at least
+100ms between commands sent to the controller.
 """
 
 
@@ -46,11 +54,25 @@ class SteppIR:
     Transceiver-Interface-Operation-6_23_2011.pdf
     """
 
+    # Class variables
+    serial_port = None
+    baud_rate = None
+    bytesize = None
+    parity = None
+    stopbits = None
+    read_timeout = None
+    xonxoff = None
+    rtscts = None
+    write_timeout = None
+    dsrdtr = None
+    inter_byte_timeout = None
+    exclusive = None
 
 
-    def __init__(self, serial_port, baud_rate):
+
+    def __init__(self, port, baudrate, bytesize, parity, stopbits, read_timeout, xonxoff, rtscts, write_timeout, dsrdtr, inter_byte_timeout, exclusive):
         """
-        Connect to SteppIR controller.
+        Set serial parameters.
 
         Parameters:
         -----------
@@ -59,8 +81,54 @@ class SteppIR:
 
         baud_rate: int
             Baud rate, must match baud rate set in controller.
+
+        bytesize: int
+            Should be 8
+
+        parity: str
+            Should be 'N'
+
+        stopbits: int
+            Should be 1
+
+        read_timeout: float
+            Serial read timeout in seconds, float
+
+        xonxoff: Boolean
+            Software handshaking, should be False
+
+        rtscts: Boolean
+            RTS/CTS hardware handshaking, should be False
+
+        write_timeout: float
+            Serial write timeout in seconds, float
+
+        dsrdtr: Boolean
+            DSR/DTR Hardware handshaking, should be False
+
+        inter_byte_timeout: float
+            Should be None
+
+        exclusive: Boolean
+            Serial port exclusive access, should be False
         """
-        self.serial = serial.Serial(serial_port, baud_rate)
+
+        # Set the Class variables based on the parameters received
+        self.serial_port = port
+        self.baud_rate = baudrate
+        self.bytesize = bytesize
+        self.parity = parity
+        self.stopbits = stopbits
+        self.read_timeout = read_timeout
+        self.xonxoff = xonxoff
+        self.rtscts = rtscts
+        self.write_timeout = write_timeout
+        self.dsrdtr = dsrdtr
+        self.inter_byte_timeout = inter_byte_timeout
+        self.exclusive = exclusive
+
+        # Needed to assure we don't run commands too close together
+        time.sleep(0.1)
 
 
 
@@ -98,35 +166,53 @@ class SteppIR:
             Two ASCII chars specifying transceiver interface version
         """
 
-        # Send status command
-        self.serial.write(b'?A\r')
+        with serial.Serial(self.serial_port, 
+            self.baud_rate, 
+            self.bytesize, 
+            self.parity, 
+            self.stopbits, 
+            self.read_timeout, 
+            self.xonxoff, 
+            self.rtscts, 
+            self.write_timeout, 
+            self.dsrdtr, 
+            self.inter_byte_timeout, 
+            self.exclusive) as self.serial:
 
-        # Controller returns 11-byte string
-        message = self.serial.read(11)
+            # Send status command
+            self.serial.write(b'?A\r')
 
-        # Bytes at position 2, 3, 4, 5 correspond to frequency, but the first is always 0.
-        frequency = struct.unpack('>i', message[2:6])[0]
+            # Controller returns 11-byte string
+            message = self.serial.read(11)
 
-        # Active Motors. I couldn't figure out the mapping for each motor from
-        # the docs. Any info on this mapping would be appreciated.
-        active_motors = message[6]
+            # Needed to assure we don't run commands too close together
+            time.sleep(0.1)
 
-        # Direction (or wavelength for verticals)
-        direction = message[7] & 0xe0
-        if direction == 0x80:
-            dir_label = "Bidirectional"
-        elif direction == 0x40:
-            dir_label = "180 degrees"
-        elif direction == 0x20:
-            dir_label = "3/4 Wave"
-        else: dir_label = "Normal"
+            # Bytes at position 2, 3, 4, 5 correspond to frequency, but the first is always 0.
+            frequency = struct.unpack('>i', message[2:6])[0]
+            frequency = frequency * 10
 
-        version = message[8:10]
+            # Active Motors. I couldn't figure out the mapping for each motor from
+            # the docs. Any info on this mapping would be appreciated. So far I'm
+            # seeing 0x07 for this parameter when the motors are busy.
+            active_motors = message[6]
 
-        #print("Message:", hex(message[0]), hex(message[1]), hex(message[2]), hex(message[3]), hex(message[4]), hex(message[5]), hex(message[6]), hex(message[7]), hex(message[8]), hex(message[9]), hex(message[10]))
-        #print("Freq:", frequency*10, "\tActive Motors:", active_motors, "\tDir:", direction, "\tInterface Vers:", version)
+            # Direction (or wavelength for verticals)
+            direction = message[7] & 0xe0
+            if direction == 0x80:
+                dir_label = "Bidirectional"
+            elif direction == 0x40:
+                dir_label = "180 degrees"
+            elif direction == 0x20:
+                dir_label = "3/4 Wave"
+            else: dir_label = "Normal"
 
-        return frequency, active_motors, direction, dir_label, version
+            version = message[8:10]
+
+            #print("Message:", hex(message[0]), hex(message[1]), hex(message[2]), hex(message[3]), hex(message[4]), hex(message[5]), hex(message[6]), hex(message[7]), hex(message[8]), hex(message[9]), hex(message[10]))
+            #print("Freq:", frequency, "\tActive Motors:", active_motors, "\tDir:", direction, "\tInterface Vers:", version)
+
+            return frequency, active_motors, direction, dir_label, version
 
 
 
@@ -158,26 +244,36 @@ class SteppIR:
         -nothing-
         """
 
+        with serial.Serial(self.serial_port, 
+            self.baud_rate, 
+            self.bytesize, 
+            self.parity, 
+            self.stopbits, 
+            self.read_timeout, 
+            self.xonxoff, 
+            self.rtscts, 
+            self.write_timeout, 
+            self.dsrdtr, 
+            self.inter_byte_timeout, 
+            self.exclusive) as self.serial:
+ 
+            # Scale frequency by 10
+            frequency /= 10
 
-        # Scale frequency by 10
-        frequency /= 10
+            # Create byte array for the frequency
+            hex_frequency = struct.pack('>i', int(frequency))
 
-        # Create byte array for the frequency
-        hex_frequency = struct.pack('>i', int(frequency))
+            cmd2 = bytes(command, 'utf-8')  # Multiple bytes
+            cmd3 = cmd2[0]  # 1 byte
 
-        cmd2 = bytes(command, 'utf-8')  # Multiple bytes
-        cmd3 = cmd2[0]  # 1 byte
+            # Steppir set command, new frequency, default flags at the end
+            #                 0 1   2 3 4 5             6     7                              8                             9 10
+            output_string = b'@A' + hex_frequency + b'\x00' + direction.to_bytes(1, 'big') + cmd3.to_bytes(1, 'big') + b'\x00\r'
 
-        # Steppir set command, new frequency, default flags at the end
-        #                 0 1   2 3 4 5             6     7                              8                             9 10
-        output_string = b'@A' + hex_frequency + b'\x00' + direction.to_bytes(1, 'big') + cmd3.to_bytes(1, 'big') + b'\x00\r'
+            self.serial.write(output_string)
 
-        self.serial.write(output_string)
-
-        # NOTE: Buttons don't aways do what's expected the first time. May need to put the command
-        # in a loop and check status, repeating the command if required.
-
-        # NOTE: Sometimes the serial.write function hangs. Need a timeout (and retry?)
+            # Needed to assure we don't run commands too close together
+            time.sleep(0.1)
 
 
 
@@ -214,14 +310,31 @@ class SteppIR:
         -nothing-
         """
 
-        # Fetch current direction
+        # Fetch current frequency
         (frequency_temp, active_motors, direction, dir_label, version) = self.get_status()
-    
-        # Set frequency and direction
-        self.set_parameters(frequency, direction, '1')
+  
+        done = False 
+        loops = 0
+        while (done == False) & (loops < 3): 
+
+            loops += 1
+
+            # Set frequency and direction
+            self.set_parameters(frequency, direction, '1')
+
+            # Wait to assure status gets updated in the controller
+            time.sleep(0.9)
+
+            # Check frequency and direction to assure they were set correctly.
+            (frequency_temp, active_motors, direction, dir_label, version) = self.get_status()
+
+            if frequency == frequency_temp:
+                done = True;
+            else:
+                print("Didn't set frequency, iteration:", loops, frequency, frequency_temp)
 
 
- 
+
     def set_dir_normal(self):
         """
         Set the direction to "normal" (0x00).
@@ -235,12 +348,29 @@ class SteppIR:
         -nothing-
         """
 
-        # Fetch current frequency
+        # Fetch current frequency/direction
         (frequency, active_motors, direction, dir_label, version) = self.get_status()
-    
-        # Set frequency and direction
-        self.set_parameters(frequency, 0x00, '1')
 
+        done = False
+        loops = 0
+        while (done == False) & (loops < 3):
+
+            loops += 1
+    
+            # Set frequency and direction
+            self.set_parameters(frequency, 0x00, '1')
+
+            # Wait to assure status gets updated in the controller
+            time.sleep(0.9)
+
+            # Check direction to assure it was set correctly
+            (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
+
+            if 0x00 == direction_temp:
+                done = True;
+            else:
+                print("Didn't set direction, iteration:", loops)
+ 
  
 
     def set_dir_180(self):
@@ -256,13 +386,30 @@ class SteppIR:
         -nothing-
         """
 
-        # Fetch current frequency
+        # Fetch current frequency/direction
         (frequency, active_motors, direction, dir_label, version) = self.get_status()
-    
-        # Set frequency and direction
-        self.set_parameters(frequency, 0x40, '1')
- 
 
+        done = False
+        loops = 0
+        while (done == False) & (loops < 3):
+
+            loops += 1
+    
+            # Set frequency and direction
+            self.set_parameters(frequency, 0x40, '1')
+ 
+            # Wait to assure status gets updated in the controller
+            time.sleep(0.9)
+
+            # Check direction to assure it was set correctly
+            (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
+
+            if 0x40 == direction_temp:
+                done = True;
+            else:
+                print("Didn't set direction, iteration:", loops)
+ 
+ 
 
     def set_dir_bidirectional(self):
         """
@@ -277,11 +424,28 @@ class SteppIR:
         -nothing-
         """
 
-        # Fetch current frequency
+        # Fetch current frequency/direction
         (frequency, active_motors, direction, dir_label, version) = self.get_status()
+ 
+        done = False
+        loops = 0
+        while (done == False) & (loops < 3):
+
+            loops += 1
     
-        # Set frequency and direction
-        self.set_parameters(frequency, 0x80, '1')
+            # Set frequency and direction
+            self.set_parameters(frequency, 0x80, '1')
+ 
+            # Wait to assure status gets updated in the controller
+            time.sleep(0.9)
+
+            # Check direction to assure it was set correctly
+            (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
+
+            if 0x80 == direction_temp:
+                done = True;
+            else:
+                print("Didn't set direction, iteration:", loops)
  
 
 
@@ -300,10 +464,28 @@ class SteppIR:
 
         # Fetch current frequency
         (frequency, active_motors, direction, dir_label, version) = self.get_status()
-    
-        # Set frequency and wavelength
-        self.set_parameters(frequency, 0x20, '1')
  
+        done = False
+        loops = 0
+        while (done == False) & (loops < 3):
+
+            loops += 1
+    
+            # Set frequency and wavelength
+            self.set_parameters(frequency, 0x20, '1')
+
+            # Wait to assure status gets updated in the controller
+            time.sleep(0.9)
+
+            # Check direction to assure it was set correctly
+            (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
+
+            if 0x20 == direction_temp:
+                done = True;
+            else:
+                print("Didn't set direction, iteration:", loops)
+ 
+
 
     def set_serial_update_ON(self):
         """
@@ -362,9 +544,30 @@ class SteppIR:
 
         # Fetch current frequency and direction
         (frequency, active_motors, direction, dir_label, version) = self.get_status()
-    
+
+        # Wait to assure status gets updated in the controller
+        time.sleep(0.9)
+
         # Retract tapes
         self.set_parameters(frequency, direction, 'S')
+   
+        done = False
+        loops = 0
+        while (done == False) & (loops < 60):
+
+            loops += 1
+ 
+            # Wait to assure status gets updated in the controller
+            time.sleep(0.9)
+
+            # Check that motors aren't busy
+            (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
+
+            if active_motors == 0x00:
+                done = True;
+            else:
+                print("Motors are busy:", hex(active_motors), "Iteration:", loops)
+ 
 
 
     def calibrate_antenna(self):
@@ -382,8 +585,28 @@ class SteppIR:
 
         # Fetch current frequency and direction
         (frequency, active_motors, direction, dir_label, version) = self.get_status()
-    
+ 
+        # Wait to assure status gets updated in the controller
+        time.sleep(0.9)
+
         # Calibrate the antenna to the controller
         self.set_parameters(frequency, direction, 'V')
+
+        done = False
+        loops = 0
+        while (done == False) & (loops < 120):
+
+            loops += 1
+ 
+            # Wait to assure status gets updated in the controller
+            time.sleep(0.9)
+
+            # Check that motors aren't busy
+            (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
+
+            if active_motors == 0x00:
+                done = True;
+            else:
+                print("Motors are busy:", hex(active_motors), "Iteration:", loops)
 
 
