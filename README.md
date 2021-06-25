@@ -65,10 +65,10 @@ You'll sometimes see messages similar to this:
 Didn't set direction, iteration: 1
 ```
 
-That message means that the first time through the loop, the direction didn't
-take in the controller. The next iteration through the loop successfully set
-the direction and the message wasn't seen again. This looping is done inside
-the library.
+That message means that the first time through the loop, the controller didn't
+perform the change in direction command. On the next iteration it did perform
+the change in direction and the message wasn't seen again. This looping and
+status checking is done automatically inside the library.
 
 Example script
 --------------
