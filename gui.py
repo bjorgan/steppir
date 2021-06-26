@@ -34,52 +34,52 @@ class Application(tk.Frame):
 
     def create_widgets(self):
 
-        self.display = tk.Label(self, text="Display", width=37, height=4, fg="White", bg="Blue")
+        self.display = tk.Label(self, text="Display", width=37, height=4, fg="White", bg="dodger blue")
         self.display.place(x=0, y=0)
 
 #        self.led_tuning = tk.Label(self, text="Tuning", width=5, height=1, fg="Grey")
 #        self.led_tuning.grid(row=0, column=3)
 
-        self.button_retract = tk.Button(self, text="Retract", width=8, fg="Black", bg="Orange", command=self.retract)
+        self.button_retract = tk.Button(self, text="Retract", width=8, fg="White", bg="OrangeRed3", command=self.retract)
         self.button_retract.grid(row=1, column=3)
 
-        self.button_direction_normal = tk.Button(self, text="Norm", width=8, fg="White", bg="Green", command=self.direction_normal)
+        self.button_direction_normal = tk.Button(self, text="Norm", width=8, fg="White", bg="medium sea green", command=self.direction_normal)
         self.button_direction_normal.grid(row=2, column=0)
 
-        self.button_direction_180 = tk.Button(self, text="180°", width=8, fg="White", bg="Green", command=self.direction_180)
+        self.button_direction_180 = tk.Button(self, text="180°", width=8, fg="White", bg="medium sea green", command=self.direction_180)
         self.button_direction_180.grid(row=2, column=1)
 
-        self.button_direction_bi_3_4 = tk.Button(self, text="Bi(3/4)", width=8, fg="White", bg="Green", command=self.direction_bi)
+        self.button_direction_bi_3_4 = tk.Button(self, text="Bi(3/4)", width=8, fg="White", bg="medium sea green", command=self.direction_bi)
         self.button_direction_bi_3_4.grid(row=2, column=2)
 
-        self.button_band_up = tk.Button(self, text="Band Up", width=8, fg="Black", bg="Cyan", command=self.band_up)
+        self.button_band_up = tk.Button(self, text="Band Up", width=8, fg="White", bg="cornflower blue", command=self.band_up)
         self.button_band_up.grid(row=3, column=0)
 
-        self.button_up_1mhz = tk.Button(self, text="1 MHz Up", width=8, fg="Black", bg="Cyan", command=self.up_1mhz)
+        self.button_up_1mhz = tk.Button(self, text="1 MHz Up", width=8, fg="White", bg="cornflower blue", command=self.up_1mhz)
         self.button_up_1mhz.grid(row=3, column=1)
 
-        self.button_up_100khz = tk.Button(self, text="100 kHz Up", width=8, fg="Black", bg="Cyan", command=self.up_100khz)
+        self.button_up_100khz = tk.Button(self, text="100 kHz Up", width=8, fg="White", bg="cornflower blue", command=self.up_100khz)
         self.button_up_100khz.grid(row=3, column=2)
 
-        self.button_up_10khz = tk.Button(self, text="10 kHz Up", width=8, fg="Black", bg="Cyan", command=self.up_10khz)
+        self.button_up_10khz = tk.Button(self, text="10 kHz Up", width=8, fg="White", bg="cornflower blue", command=self.up_10khz)
         self.button_up_10khz.grid(row=3, column=3)
  
-        self.button_calibrate = tk.Button(self, text="Calibrate", width=8, fg="Black", bg="Orange", command=self.calibrate)
+        self.button_calibrate = tk.Button(self, text="Calibrate", width=8, fg="White", bg="orange3", command=self.calibrate)
         self.button_calibrate.grid(row=2, column=3)
  
-        self.button_band_down = tk.Button(self, text="Band Dn", width=8, fg="Black", bg="Cyan", command=self.band_down)
+        self.button_band_down = tk.Button(self, text="Band Dn", width=8, fg="White", bg="cornflower blue", command=self.band_down)
         self.button_band_down.grid(row=4, column=0)
 
-        self.button_up_1mhz = tk.Button(self, text="1 MHz Dn", width=8, fg="Black", bg="Cyan", command=self.down_1mhz)
+        self.button_up_1mhz = tk.Button(self, text="1 MHz Dn", width=8, fg="White", bg="cornflower blue", command=self.down_1mhz)
         self.button_up_1mhz.grid(row=4, column=1)
 
-        self.button_down_100khz = tk.Button(self, text="100 kHz Dn", width=8, fg="Black", bg="Cyan", command=self.down_100khz)
+        self.button_down_100khz = tk.Button(self, text="100 kHz Dn", width=8, fg="White", bg="cornflower blue", command=self.down_100khz)
         self.button_down_100khz.grid(row=4, column=2)
 
-        self.button_down_10khz = tk.Button(self, text="10 kHz Dn", width=8, fg="Black", bg="Cyan", command=self.down_10khz)
+        self.button_down_10khz = tk.Button(self, text="10 kHz Dn", width=8, fg="White", bg="cornflower blue", command=self.down_10khz)
         self.button_down_10khz.grid(row=4, column=3)
 
-        self.quit = tk.Button(self, text="Quit", width=8, fg="White", bg="Red", command=self.master.destroy)
+        self.quit = tk.Button(self, text="Quit", width=8, fg="White", bg="OrangeRed3", command=self.master.destroy)
         self.quit.grid(row=0, column=3)
 
 
