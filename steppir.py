@@ -291,7 +291,7 @@ class SteppIR:
             Current frequency in Hz
         """
 
-        get_status(frequency, active_motors, direction, version)
+        (frequency, active_motors, direction, dir_label, version) = self.get_status()
         return frequency
 
 
