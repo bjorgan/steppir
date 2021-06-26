@@ -37,62 +37,56 @@ class Application(tk.Frame):
         self.display = tk.Label(self, text="Display", width=37, height=4, fg="White", bg="Blue")
         self.display.place(x=0, y=0)
 
-        self.button_course_up = tk.Button(self, text="100 kHz Up", width=8, fg="White", bg="Black", command=self.course_up)
-        self.button_course_up.grid(row=2, column=1)
-
-        self.button_course_down = tk.Button(self, text="100 kHz Down", width=8, fg="White", bg="Black", command=self.course_down)
-        self.button_course_down.grid(row=3, column=1)
-
-        self.button_fine_up = tk.Button(self, text="10 kHz Up", width=8, fg="White", bg="Black", command=self.fine_up)
-        self.button_fine_up.grid(row=2, column=2)
-
-        self.button_fine_down = tk.Button(self, text="10 kHz Down", width=8, fg="White", bg="Black", command=self.fine_down)
-        self.button_fine_down.grid(row=3, column=2)
-
-        self.button_band_up = tk.Button(self, text="Band Up", width=8, fg="White", bg="Black", command=self.band_up)
-        self.button_band_up.grid(row=2, column=0)
-
-        self.button_band_down = tk.Button(self, text="Band Down", width=8, fg="White", bg="Black", command=self.band_down)
-        self.button_band_down.grid(row=3, column=0)
+#        self.led_tuning = tk.Label(self, text="Tuning", width=5, height=1, fg="Grey")
+#        self.led_tuning.grid(row=0, column=3)
 
         self.button_retract = tk.Button(self, text="Retract", width=8, fg="White", bg="Black", command=self.retract)
-        self.button_retract.grid(row=0, column=4)
+        self.button_retract.grid(row=1, column=3)
 
+        self.button_direction_normal = tk.Button(self, text="Norm", width=8, fg="White", bg="Black", command=self.direction_normal)
+        self.button_direction_normal.grid(row=2, column=0)
+
+        self.button_direction_180 = tk.Button(self, text="180°", width=8, fg="White", bg="Black", command=self.direction_180)
+        self.button_direction_180.grid(row=2, column=1)
+
+        self.button_direction_bi_3_4 = tk.Button(self, text="Bi(3/4)", width=8, fg="White", bg="Black", command=self.direction_bi)
+        self.button_direction_bi_3_4.grid(row=2, column=2)
+
+        self.button_band_up = tk.Button(self, text="Band Up", width=8, fg="White", bg="Black", command=self.band_up)
+        self.button_band_up.grid(row=3, column=0)
+
+        self.button_up_1mhz = tk.Button(self, text="1 MHz Up", width=8, fg="White", bg="Black", command=self.up_1mhz)
+        self.button_up_1mhz.grid(row=3, column=1)
+
+        self.button_up_100khz = tk.Button(self, text="100 kHz Up", width=8, fg="White", bg="Black", command=self.up_100khz)
+        self.button_up_100khz.grid(row=3, column=2)
+
+        self.button_up_10khz = tk.Button(self, text="10 kHz Up", width=8, fg="White", bg="Black", command=self.up_10khz)
+        self.button_up_10khz.grid(row=3, column=3)
+ 
         self.button_calibrate = tk.Button(self, text="Calibrate", width=8, fg="White", bg="Black", command=self.calibrate)
         self.button_calibrate.grid(row=2, column=3)
  
-        self.button_power = tk.Button(self, text="Power", width=8, fg="DarkGrey", bg="Grey", command=self.power)
-        self.button_power.grid(row=0, column=5)
+        self.button_band_down = tk.Button(self, text="Band Dn", width=8, fg="White", bg="Black", command=self.band_down)
+        self.button_band_down.grid(row=4, column=0)
 
-        self.button_direction_normal = tk.Button(self, text="Normal", width=8, fg="White", bg="Black", command=self.direction_normal)
-        self.button_direction_normal.grid(row=1, column=3)
+        self.button_up_1mhz = tk.Button(self, text="1 MHz Dn", width=8, fg="White", bg="Black", command=self.down_1mhz)
+        self.button_up_1mhz.grid(row=4, column=1)
 
-        self.button_direction_180 = tk.Button(self, text="180", width=8, fg="White", bg="Black", command=self.direction_180)
-        self.button_direction_180.grid(row=1, column=4)
+        self.button_down_100khz = tk.Button(self, text="100 kHz Dn", width=8, fg="White", bg="Black", command=self.down_100khz)
+        self.button_down_100khz.grid(row=4, column=2)
 
-        self.button_direction_bi_3_4 = tk.Button(self, text="Bidirectional", width=8, fg="White", bg="Black", command=self.direction_bi)
-        self.button_direction_bi_3_4.grid(row=1, column=5)
-
-        self.button_autotrack = tk.Button(self, text="Autotrack", width=8, fg="DarkGrey", bg="Grey", command=self.autotrack)
-        self.button_autotrack.grid(row=2, column=5)
-
-        self.button_select = tk.Button(self, text= "Select", width=8, fg="DarkGrey", bg="Grey", command=self.select)
-        self.button_select.grid(row=3, column=3)
-
-        self.button_setup = tk.Button(self, text="Setup", width=8, fg="DarkGrey", bg="Grey", command=self.setup)
-        self.button_setup.grid(row=3, column=4)
-
-        self.led_tuning = tk.Label(self, text="Tuning", width=5, height=1, fg="Grey")
-        self.led_tuning.grid(row=0, column=3)
+        self.button_down_10khz = tk.Button(self, text="10 kHz Dn", width=8, fg="White", bg="Black", command=self.down_10khz)
+        self.button_down_10khz.grid(row=4, column=3)
 
         self.quit = tk.Button(self, text="Quit", width=8, fg="White", bg="Red", command=self.master.destroy)
-        self.quit.grid(row=3, column=5)
+        self.quit.grid(row=0, column=3)
 
 
 
     # Frequency + 10kHz
-    def fine_up(self):
-        self.led_tuning.config(fg="Red")
+    def up_10khz(self):
+#        self.led_tuning.config(fg="Red")
         print("frequency + 10 kHz")
         (frequency) = step.get_frequency()
         frequency += 10000
@@ -100,13 +94,13 @@ class Application(tk.Frame):
         print("New Frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%5.3f MHz" % freq_mhz)
-        self.led_tuning.config(fg="Grey")
+#        self.led_tuning.config(fg="Grey")
  
 
 
     # Frequency - 10 kHz
-    def fine_down(self):
-        self.led_tuning.config(fg="Red")
+    def down_10khz(self):
+#        self.led_tuning.config(fg="Red")
         print("frequency - 10 kHz")
         (frequency) = step.get_frequency()
         frequency -= 10000
@@ -114,13 +108,13 @@ class Application(tk.Frame):
         print("New Frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%5.3f MHz" % freq_mhz)
-        self.led_tuning.config(fg="Grey")
+#        self.led_tuning.config(fg="Grey")
  
 
 
     # Frequency + 100 kHz
-    def course_up(self):
-        self.led_tuning.config(fg="Red")
+    def up_100khz(self):
+#        self.led_tuning.config(fg="Red")
         print("frequency + 100 kHz")
         (frequency) = step.get_frequency()
         frequency += 100000
@@ -128,13 +122,13 @@ class Application(tk.Frame):
         print("New Frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%5.3f MHz" % freq_mhz)
-        self.led_tuning.config(fg="Grey")
+#        self.led_tuning.config(fg="Grey")
  
 
 
     # Frequency - 100 kHz
-    def course_down(self):
-        self.led_tuning.config(fg="Red")
+    def down_100khz(self):
+#        self.led_tuning.config(fg="Red")
         print("frequency - 100 kHz")
         (frequency) = step.get_frequency()
         frequency -= 100000
@@ -142,12 +136,40 @@ class Application(tk.Frame):
         print("New Frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%5.3f MHz" % freq_mhz)
-        self.led_tuning.config(fg="Grey")
+#        self.led_tuning.config(fg="Grey")
+
+
  
+    # Frequency + 1 MHz
+    def up_1mhz(self):
+#        self.led_tuning.config(fg="Red")
+        print("frequency + 1 MHz")
+        (frequency) = step.get_frequency()
+        frequency += 1000000
+        freq_mhz = frequency / 1000000
+        print("New Frequency %5.3f MHz" % freq_mhz)
+        step.set_frequency(frequency)
+        self.display.config(text="%5.3f MHz" % freq_mhz)
+#        self.led_tuning.config(fg="Grey")
+
+
+ 
+    # Frequency - 1 MHz
+    def down_1mhz(self):
+#        self.led_tuning.config(fg="Red")
+        print("frequency - 1 MHz")
+        (frequency) = step.get_frequency()
+        frequency -= 1000000
+        freq_mhz = frequency / 1000000
+        print("New Frequency %5.3f MHz" % freq_mhz)
+        step.set_frequency(frequency)
+        self.display.config(text="%5.3f MHz" % freq_mhz)
+#        self.led_tuning.config(fg="Grey")
+
 
 
     def band_up(self):
-        self.led_tuning.config(fg="Red")
+#        self.led_tuning.config(fg="Red")
         print("band up")
         (frequency) = step.get_frequency()
         if frequency  <   8000000:  # 40 meters
@@ -170,12 +192,12 @@ class Application(tk.Frame):
         print("New frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%5.3f MHz" % freq_mhz)
-        self.led_tuning.config(fg="Grey")
+#        self.led_tuning.config(fg="Grey")
  
 
  
     def band_down(self):
-        self.led_tuning.config(fg="Red")
+#        self.led_tuning.config(fg="Red")
         print("band down")
         (frequency) = step.get_frequency()
         if frequency >   49000000:  # 6 meters
@@ -198,35 +220,29 @@ class Application(tk.Frame):
         print("New frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%5.3f MHz" % freq_mhz)
-        self.led_tuning.config(fg="Grey")
+#        self.led_tuning.config(fg="Grey")
  
 
  
     def retract(self):
-        self.led_tuning.config(fg="Red")
+#        self.led_tuning.config(fg="Red")
         print("retract")
         step.retract_antenna()
-        self.led_tuning.config(fg="Grey")
+#        self.led_tuning.config(fg="Grey")
 
 
  
     def calibrate(self):
-        self.led_tuning.config(fg="Red")
+#        self.led_tuning.config(fg="Red")
         print("calibrate")
         step.calibrate_antenna()
-        self.led_tuning.config(fg="Grey")
-
-
-
-    # Do nothing: Can't control this button 
-    def power(self):
-         print("power")
+#        self.led_tuning.config(fg="Grey")
 
 
 
     # If frequency = 0, elements are "Homed" 
     def direction_normal(self):
-        self.led_tuning.config(fg="Red")
+#        self.led_tuning.config(fg="Red")
         print("direction: normal")
         step.set_dir_normal()
         (frequency) = step.get_frequency()
@@ -234,12 +250,12 @@ class Application(tk.Frame):
         self.display.config(text=frequency)
         freq_mhz = frequency / 1000000
         self.display.config(text="%5.3f MHz" % freq_mhz)
-        self.led_tuning.config(fg="Grey")
+#        self.led_tuning.config(fg="Grey")
 
  
 
     def direction_180(self):
-        self.led_tuning.config(fg="Red")
+#        self.led_tuning.config(fg="Red")
         print("direction: 180")
         step.set_dir_180()
         (frequency) = step.get_frequency()
@@ -247,12 +263,12 @@ class Application(tk.Frame):
         self.display.config(text=frequency)
         freq_mhz = frequency / 1000000
         self.display.config(text="%5.3f MHz" % freq_mhz)
-        self.led_tuning.config(fg="Grey")
+#        self.led_tuning.config(fg="Grey")
 
  
 
     def direction_bi(self):
-        self.led_tuning.config(fg="Red")
+#        self.led_tuning.config(fg="Red")
         print("direction: bidirectional")
         step.set_dir_bidirectional()
         (frequency) = step.get_frequency()
@@ -260,25 +276,7 @@ class Application(tk.Frame):
         self.display.config(text=frequency)
         freq_mhz = frequency / 1000000
         self.display.config(text="%5.3f MHz" % freq_mhz)
-        self.led_tuning.config(fg="Grey")
- 
-
-
-    # Do nothing: Can't control this button 
-    def autotrack(self):
-        print("autotrack")
-
-
-
-    # Do nothing: Can't control this button 
-    def select(self):
-        print("select")
-
-
-
-    # Do nothing: Can't control this button 
-    def setup(self):
-        print("setup")
+#        self.led_tuning.config(fg="Grey")
 
 
 
