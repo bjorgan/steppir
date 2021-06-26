@@ -50,6 +50,13 @@ See "steppir.py" for details on each one.
 Software usage instructions
 ---------------------------
 
+There's a new Pyton/Tkinter GUI that roughly simulates a SteppIR SDA-100
+controller, those buttons that we can control remotely that is. Try:
+
+```
+gui.py
+```
+
 Note that if you use the function set_serial_update(), you'll need to keep
 reading from the serial buffer constantly, else the buffer will overflow. It
 might also mess up the looping constructs for some commands that verify the
