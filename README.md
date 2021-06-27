@@ -51,15 +51,23 @@ See "steppir.py" for details on each one.
 Software usage instructions
 ---------------------------
 
-There's a new Pyton/Tkinter GUI that roughly simulates a SteppIR SDA-100
-controller, those buttons that we can control remotely that is. Try:
+Included is a Pyton/Tkinter GUI which roughly simulates a SteppIR SDA-100
+controller. At least those buttons we can control remotely. Try:
 
 ```
 gui.py
 ```
 
+Note that AUTOTRACK must be turned ON for most of the functions to work.
+Notable exceptions are "Retract" and "Calibrate" which work in any case.
+
+I'm still working on feedback between the library and the GUI so we know
+which commands worked and when the H/W unit is tuning.
+
 After you issue the retract_antenna() command and it completes, you must
-enable AUTOTRACK before software can command the controller again.
+enable AUTOTRACK before software can command the controller again. Also,
+if doing this from the GUI you may need to use BAND UP before the unit
+starts tuning to the correct frequencies.
 
 You'll sometimes see messages similar to this:
 
