@@ -11,7 +11,9 @@ The below was tested with a SteppIR SDA-100 controller.
 
 
 NOTE: The controller must be in AUTOTRACK mode for serial control to work.
-Homing/Retracting the elements will take it out of AUTOTRACK mode.
+Homing/Retracting the elements will take it out of AUTOTRACK mode. You then
+need to issue it the 'R' command to re-enable before other commands will
+work again.
 
 NOTE: For those remote'ing their SteppIR controller: It can remember the
 state of the power switch but takes up to 3 minutes to memorize the power
@@ -234,8 +236,8 @@ class SteppIR:
 
         command: ascii
             '1' = Set frequency and direction
-            'R' = Turn ON serial frequency update. Needed after Home/Retract to re-enable
-            'U' = Turn OFF Serial frequency update
+            'R' = Turn ON AUTOTRACK. Needed after Home/Retract to re-enable
+            'U' = Turn OFF AUTOTRACK
             'S' = Home antenna (Retract tapes)
             'V' = Calibrate antenna
 
@@ -487,9 +489,9 @@ class SteppIR:
  
 
 
-    def set_serial_update_ON(self):
+    def set_autotrack_ON(self):
         """
-        Turn ON serial frequency update. Must re-enable after a Home/Retract command.
+        Turn ON AUTOTRACK. Must re-enable after a Home/Retract command.
 
         Parameters:
         -----------
@@ -508,9 +510,9 @@ class SteppIR:
  
 
 
-    def set_serial_update_OFF(self):
+    def set_autotrack_OFF(self):
         """
-        Turn OFF serial frequency update.
+        Turn OFF autotrack.
 
         Parameters:
         -----------

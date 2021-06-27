@@ -34,13 +34,19 @@ class Application(tk.Frame):
 
     def create_widgets(self):
 
-        self.display = tk.Label(self, text="Display", width=37, height=4, fg="White", bg="dodger blue")
+        self.display = tk.Label(self, text="Display", width=24, height=4, fg="White", bg="dodger blue")
         self.display.place(x=0, y=0)
 
 #        self.led_tuning = tk.Label(self, text="Tuning", width=5, height=1, fg="Grey")
 #        self.led_tuning.grid(row=0, column=3)
 
-        self.button_retract = tk.Button(self, text="Retract", width=8, fg="White", bg="OrangeRed3", command=self.retract)
+        self.button_autotrack_on = tk.Button(self, text="Autotrack ON", width=8, fg="White", bg="orange3", command=self.autotrack_on)
+        self.button_autotrack_on.grid(row=0, column=2)
+
+        self.button_autotrack_off = tk.Button(self, text="Autotrack OFF", width=8, fg="White", bg="orange3", command=self.autotrack_off)
+        self.button_autotrack_off.grid(row=1, column=2)
+
+        self.button_retract = tk.Button(self, text="Retract", width=8, fg="White", bg="orange3", command=self.retract)
         self.button_retract.grid(row=1, column=3)
 
         self.button_direction_normal = tk.Button(self, text="Norm", width=8, fg="White", bg="medium sea green", command=self.direction_normal)
@@ -223,7 +229,23 @@ class Application(tk.Frame):
 #        self.led_tuning.config(fg="Grey")
  
 
- 
+
+    def autotrack_on(self):
+#        self.led_tuning.config(fg="Red")
+        print("autotrack ON")
+        step.set_autotrack_ON()
+#        self.led_tuning.config(fg="Grey")
+
+
+
+    def autotrack_off(self):
+#        self.led_tuning.config(fg="Red")
+        print("autotrack OFF")
+        step.set_autotrack_OFF()
+#        self.led_tuning.config(fg="Grey")
+
+
+
     def retract(self):
 #        self.led_tuning.config(fg="Red")
         print("retract")
