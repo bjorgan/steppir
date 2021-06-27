@@ -23,7 +23,8 @@ for details.
 
 Hook up the computer to the Data OUT port on the controller.
 Use a THREE WIRE CABLE to the DATA OUT port.
-Set the controller to AUTOTRACK.
+Set the controller to AUTOTRACK, either by pushing the button manually or
+    by issuing the set_autotrack_ON command.
 Set the SDA-100 controller Data Out port to 1200 baud (more bulletproof).
 
 Library Functions
@@ -39,8 +40,8 @@ set_dir_normal()
 set_dir_180()
 set_dir_bidirectional()
 set_dir_3_4()
-set_serial_update_ON()
-set_serial_update_OFF()
+set_autotrack_ON()
+set_autotrack_OFF()
 retract_antenna()
 calibrate_antenna()
 ```
@@ -57,14 +58,8 @@ controller, those buttons that we can control remotely that is. Try:
 gui.py
 ```
 
-Note that if you use the function set_serial_update(), you'll need to keep
-reading from the serial buffer constantly, else the buffer will overflow. It
-might also mess up the looping constructs for some commands that verify the
-status of a command after issuing a "set" command.
-
 After you issue the retract_antenna() command and it completes, you must
-manually enable AUTOTRACK on the controller before software can command the
-controller again.
+enable AUTOTRACK before software can command the controller again.
 
 You'll sometimes see messages similar to this:
 
@@ -101,6 +96,8 @@ step = steppir.SteppIR('/dev/ttyUSB0',  # port
     None,   # inter_byte_timeout
     None)   # exclusive port access
 
+step.set_autotrack_ON()                     # Enable AUTOTRACK mode
+
 print(step.get_status())                    # Get status and print
 
 print("Setting frequency")
@@ -111,8 +108,8 @@ step.set_parameters(51230000, 0x00, '1')    # Set frequency / direction / comman
 #step.set_parameters(51230000, 0x00, 'S')   # Home antenna (retract tapes)
 #step.set_parameters(51230000, 0x00, 'V')   # Calibrate antenna
 
-#step.set_parameters(51230000, 0x00, 'R')   # Turn ON serial frequency update
-#step.set_parameters(51230000, 0x00, 'U')   # Turn OFF serial frequency update
+#step.set_parameters(51230000, 0x00, 'R')   # Turn ON AUTOTRACK
+#step.set_parameters(51230000, 0x00, 'U')   # Turn OFF AUTOTRACK
 
 time.sleep(1.0)                             # Delay 1 second
 
