@@ -34,7 +34,8 @@ class Application(tk.Frame):
 
     def create_widgets(self):
 
-        self.display = tk.Label(self, text="Display", width=24, height=4, fg="White", bg="dodger blue")
+        self.display = tk.Label(self, text="Display", font=("Arial", 20), height=2, fg="White", bg="Black")
+ 
         self.display.place(x=0, y=0)
 
 #        self.led_tuning = tk.Label(self, text="Tuning", width=5, height=1, fg="Grey")
