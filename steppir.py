@@ -5,47 +5,59 @@ import time
 
 """
 This project was forked from the https://github.com/bjorgan/steppir project.
-Thanks to Asgeir Bjorgan for getting this thing started!
-The below was tested with a SteppIR SDA-100 controller.
+Thanks to Asgeir Bjorgan for getting this thing started! I've added greatly
+to the functonality and robustness of the code since then, but it couldn't
+have gotten off the ground without that initial effort.
+This library was tested against a SteppIR SDA-100 controller (NOT upgraded
+to "Mustang" firmware) set up to control a DB18e antenna.
 -- Curt Mills, WE7U
 
 
-NOTE: The controller must be in AUTOTRACK mode for serial control to work.
-Homing/Retracting the elements will take it out of AUTOTRACK mode. You then
-need to issue it the 'R' command to re-enable before other commands will
-work again.
+The controller must be in AUTOTRACK mode for most of the commands to work.
+Homing/Retracting the elements will take it out of AUTOTRACK mode, you then
+must issue an AUTOTRACK ON command or activate a GUI button to re-enable
+AUTOTRACK before the controller will accept most commands. When NOT in
+AUTOTRACK mode only the CALIBRATE and RETRACT commands will work.
 
-NOTE: For those remote'ing their SteppIR controller: It can remember the
-state of the power switch but takes up to 3 minutes to memorize the power
-state. It should come back on with power applied if you left it on for at
-least that amount of time prior to the power being removed.
+When not in AUTOTRACK mode the controller should NOT track the frequency
+of an attached radio either.
 
-NOTE: If you're shutting off power to the controller manually, "home"
-(retract) the antenna elements prior to doing so.
+For those remote'ing their SteppIR controller: It can remember the state of
+the power switch but takes up to 3 minutes while powered-up to memorize the
+power state. After three minutes of being powered-up, removing power and
+then re-applying it should cause the controller to power back up.
 
-NOTE: Loss of power while tuning the antenna can get everything out-of-sync
-and you'll need to calibrate afterwards.
+Loss of power while tuning the antenna can get the controller out of sync
+with the positioning of the antenna elements. You'll need to issue the
+CALIBRATE command in this case.
 
-NOTE: Use the Data Out connector for the full feature set. You can perform
-all functions below if using that connector. Only use a 3-wire connection at
-the DE-9 connector as some of the pins have +5V or TTL levels and you could
-cause damage by hooking up a 5/7/9-pin serial cable. In my case (WE7U) I
-bought an FTDI-based USB->serial cable with bare wires at one end and cut
-back all wires except for RXD/TXD/GND. I soldered those three wires to a
-DE-9 female connector and it worked great. The controller can be set to a
-baud rate of 1200 to 19.2k baud. Setting a higher baud rate results in an
-actual setting of 19.2k baud.
+Before shutting off power to the controller manually, issue the RETRACT (Home)
+command. Note that you must issue the AUTOTRACK ON command (or push the button
+to enable it on the controller) to regain full remote control afterwards.
 
-NOTE: There can be as much as a 1 second delay from a SET command before
-variables are updated for a STATUS command. There should also be at least
-100ms between commands sent to the controller.
+Use the Data Out connector for the full feature set. You can perform all
+functions below if using that connector. Only use a 3-wire connection at the
+DE-9 connector as some of the pins have +5V or TTL levels and you could cause
+damage by hooking up a 5/7/9-pin serial cable. I bought an FTDI-based
+USB->serial cable with bare wires at one end and trimmed back all wires except
+RXD/TXD/GND. I soldered those to a DE-9 female connector and it worked just
+fine. The controller can be set to a baud rate of 1200 to 19.2k baud. Setting
+a higher baud rate than 19.2k results in an actual setting of 19.2k baud.  For
+robustness of the control link I suggest one of the low baud rates.
+
+There can be as much as a 1 second delay from a SET command before variables
+are updated as returned from a STATUS command. There should be at least 100ms
+between commands sent to the controller. This library includes time delays in
+the appropriate places to prevent sending commands to the controller too
+quickly. Don't issue the Status command to the controller more often than 10
+times per second.
 """
 
 
 
 class SteppIR:
     """
-    Serial interface for controlling SteppIR controllers like SteppIR SDA 100.
+    Serial interface for controlling SteppIR controllers like the SDA-100.
 
     For details on the serial interface, see "Transceiver interface operation
     for Steppir"
@@ -54,6 +66,10 @@ class SteppIR:
     Note: The document is no longer available from SteppIR, but versions can
     still be found around the 'net. The most recent one found:
     Transceiver-Interface-Operation-6_23_2011.pdf
+
+    For the SDA-2000 controller there is a protocol document dated 10/09/2018
+    that is otherwise similar to the above documents but included a few more
+    protocol details that may only be found in the SDA-2000 controller.
     """
 
     # Class variables
@@ -138,6 +154,13 @@ class SteppIR:
         """
         Get current parameters from SteppIR controller.
 
+	The controller returns 11 bytes: We break them out into individual
+	parameters and return them to the calling function. This "get_status"
+	function is used by all functions in this library that need status
+	from the controller.
+
+	This command does NOT retry automatically.
+
         Parameters:
         -----------
         -none-
@@ -148,7 +171,17 @@ class SteppIR:
             Current frequency in Hz
 
         active_motors
-            An 8-bit value specifying motors that are currently "busy"
+            An 8-bit value specifying motors which are currently "busy".
+	    A value of 0xff indicates the controller is in SETUP mode or
+	    has just been given a command to process.
+		Bit 0x01 Is always a '1'
+		Bit 0x02
+		Bit 0x04 Appears to indicate AUTOTRACK mode ON/OFF
+		Bit 0x08
+		Bit 0x10
+		Bit 0x20
+		Bit 0x40
+		Bit 0x80
 
         direction
             An 8-bit value specifying the direction the antenna is pointing:
@@ -181,7 +214,7 @@ class SteppIR:
             self.inter_byte_timeout, 
             self.exclusive) as self.serial:
 
-            # Send status command
+            # Send 3-byte status command
             self.serial.write(b'?A\r')
 
             # Controller returns 11-byte string
@@ -196,7 +229,12 @@ class SteppIR:
 
             # Active Motors. I couldn't figure out the mapping for each motor from
             # the docs. Any info on this mapping would be appreciated. So far I'm
-            # seeing 0x07 for this parameter when the motors are busy.
+            # seeing 0x07 for this parameter when the motors are busy. There are
+	    # four bits defined in the docs plus another note that says this byte
+	    # will get set to 0xff (all bits set) to acknowledge successful receipt
+	    # of a command. For a DB18e antenna there are six stepper motors, most
+	    # likely driven in pairs, so that would result in 3 bits being set if
+	    # all motors are busy.
             active_motors = message[6]
 
             # Direction (or wavelength for verticals)
@@ -222,6 +260,25 @@ class SteppIR:
         """
         Send parameters to the SteppIR controller.
 
+	Here we send exactly 10 bytes to the controller. This "set_parameters"
+	function is used by all other functions in this library that need to send
+	something to the controller. Always set a valid frequency when sending
+	the set_parameters command.
+
+	This command does NOT retry automatically.
+
+	Requesting status immediately after a command: The controller sets the "ac"
+        byte (retrieved via the "get_status" command) to 0xff when it receives a
+	valid command string. It clears "ac" (minus the motor busy bits) when it is
+	done processing a command. Consider "frequency", "direction", and "ac" bytes
+	valid only when "ac" is NOT equal to 0xff. These may be SDA-2000 features
+	and not included in the SDA-100 protocol?
+
+	If "direction" is 0xc0, the byte preceeding it (called "pa", always 0x00 in
+	the code below) selects antenna pattern 0 through 15. This hasn't been tried
+	in the code yet but should correspond to hex numbers 0x00 to 0x0F. 0x00 is
+	the default direction for "pa". May be an SDA-2000 only feature?
+
         Parameters:
         -----------
         frequency: int
@@ -233,13 +290,14 @@ class SteppIR:
             0x40 = 180 direction
             0x80 = Bidirectional
             0x20 = 3/4 wave (For vertical antennas only)
+	    0xc0 = Use pattern value in "pa" byte (not implemented in this library yet)
 
         command: ascii
             '1' = Set frequency and direction
-            'R' = Turn ON AUTOTRACK. Needed after Home/Retract to re-enable
+            'R' = Turn ON AUTOTRACK. Needed after Home/Retract to re-enable full control
             'U' = Turn OFF AUTOTRACK
-            'S' = Home antenna (Retract tapes)
-            'V' = Calibrate antenna
+            'S' = Home the antenna (Retract the elements into the hubs)
+            'V' = Calibrate the antenna
 
         Returns:
         --------
@@ -262,13 +320,15 @@ class SteppIR:
             # Scale frequency by 10
             frequency /= 10
 
-            # Create byte array for the frequency
+            # Create byte array for the frequency. Note that this creates four
+	    # bytes but the first byte will always be 0x00, as the protocol
+	    # doc requires.
             hex_frequency = struct.pack('>i', int(frequency))
 
             cmd2 = bytes(command, 'utf-8')  # Multiple bytes
             cmd3 = cmd2[0]  # 1 byte
 
-            # Steppir set command, new frequency, default flags at the end
+            # Steppir "set" command: New frequency, default flags at the end
             #                 0 1   2 3 4 5             6     7                              8                             9 10
             output_string = b'@A' + hex_frequency + b'\x00' + direction.to_bytes(1, 'big') + cmd3.to_bytes(1, 'big') + b'\x00\r'
 
@@ -281,7 +341,9 @@ class SteppIR:
 
     def get_frequency(self):
         """
-        Get current frequency.
+        Get current frequency in Hz.
+
+	This command retries automatically.
 
         Parameters:
         -----------
@@ -293,14 +355,28 @@ class SteppIR:
             Current frequency in Hz
         """
 
-        (frequency, active_motors, direction, dir_label, version) = self.get_status()
+	done = False
+	loops = 0
+	while (done == False) & (loops < 3):
+
+	    loops += 1
+
+            (frequency, active_motors, direction, dir_label, version) = self.get_status()
+
+            if frequency != 0:
+                done = True;
+            else:
+                print("Didn't get frequency, iteration:", loops, frequency, frequency_temp)
+
         return frequency
 
 
 
     def set_frequency(self, frequency):
         """
-        Set new frequency.
+        Set new frequency, in Hz.
+
+	This command retries automatically.
 
         Parameters:
         -----------
@@ -339,7 +415,10 @@ class SteppIR:
 
     def set_dir_normal(self):
         """
-        Set the direction to "normal" (0x00).
+        Set the beam direction to "normal" (0x00) or a vertical antenna to
+	its normal wavelength.
+
+	This command retries automatically.
 
         Parameters:
         -----------
@@ -377,7 +456,9 @@ class SteppIR:
 
     def set_dir_180(self):
         """
-        Set the direction to "180" (0x40).
+        Set the beam direction to "180" (0x40) from normal.
+
+	This command retries automatically.
 
         Parameters:
         -----------
@@ -415,7 +496,10 @@ class SteppIR:
 
     def set_dir_bidirectional(self):
         """
-        Set the direction to "Bidirectional" (0x80).
+        Set the direction to "Bidirectional" (0x80) (normal and reverse
+	directions at the same time).
+
+	This command retries automatically.
 
         Parameters:
         -----------
@@ -453,7 +537,10 @@ class SteppIR:
 
     def set_dir_3_4(self):
         """
-        Set the antenna to 3/4 wavelength (0x20). Only used for vertical antennas.
+        Set a vertical antenna to 3/4 wavelength (0x20). Not applicable to
+	beam antennas.
+
+	This command retries automatically.
 
         Parameters:
         -----------
@@ -491,7 +578,10 @@ class SteppIR:
 
     def set_autotrack_ON(self):
         """
-        Turn ON AUTOTRACK. Must re-enable after a Home/Retract command.
+        Turn ON AUTOTRACK. Must re-enable using this command after a
+	Home/Retract command.
+
+	This command does NOT retry automatically.
 
         Parameters:
         -----------
@@ -512,7 +602,13 @@ class SteppIR:
 
     def set_autotrack_OFF(self):
         """
-        Turn OFF autotrack.
+        Turn OFF AUTOTRACK. With AUTOTRACK off only these commands will be
+	accepted by the controller over the serial port:
+		AUTOTRACK ON
+		CALIBRATE
+		RETRACT
+
+	This command does NOT retry automatically.
 
         Parameters:
         -----------
@@ -533,7 +629,10 @@ class SteppIR:
 
     def retract_antenna(self):
         """
-        Retract tapes into the controller hubs.
+        Retract antenna elements into the controller hubs ("Home").
+
+	This command does NOT retry automatically but it does wait until the motors
+	are not busy.
 
         Parameters:
         -----------
@@ -575,6 +674,9 @@ class SteppIR:
     def calibrate_antenna(self):
         """
         Calibrate the antenna to the controller.
+
+	This command does NOT retry automatically but it does wait until the
+	motors are not busy.
 
         Parameters:
         -----------
