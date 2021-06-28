@@ -34,7 +34,7 @@ class Application(tk.Frame):
 
     def create_widgets(self):
 
-        self.display = tk.Label(self, text="Display", font=("Arial", 20), height=2, fg="White", bg="Black")
+        self.display = tk.Label(self, text="Display", font=("Arial", 20, 'bold'), height=2, fg="White", bg="Black")
  
         self.display.place(x=0, y=0)
 
