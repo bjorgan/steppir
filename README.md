@@ -3,6 +3,31 @@ Python interface for SteppIR controller
 
 Control your SDA100 controller using Python!
 
+Includes both a Python library and a graphical interface which uses it.
+
+History
+-------
+
+This project was forked from the https://github.com/bjorgan/steppir project.
+Thanks to Asgeir Bjorgan for getting this thing started! I've added greatly
+to the functonality and robustness of the code since then, but it couldn't
+have gotten off the ground without that initial effort.
+This library was tested against a SteppIR SDA-100 controller (NOT upgraded
+to "Mustang" firmware) set up to control a DB18e antenna.
+-- Curt Mills, WE7U
+
+For details on the serial interface, see "Transceiver interface operation
+for Steppir"
+(https://consumer.steppir.com/wp-content/uploads/2011/10/Transceiver-Interface-Operation-5-28-09.pdf).
+
+Note: The document is no longer available from SteppIR, but versions can
+still be found around the 'net. The most recent one found:
+Transceiver-Interface-Operation-6_23_2011.pdf
+
+For the SDA-2000 controller there is a protocol document dated 10/09/2018
+that is otherwise similar to the above documents but included a few more
+protocol details that may only be found in the SDA-2000 controller.
+
 Build/install instructions
 --------------------------
 
@@ -11,7 +36,7 @@ The Python module is installed locally by:
 ```
 python3 setup.py install --user
 ```
-Note that you don't have to install it to use it with Python scripts.
+Note that you don't have to install the library in order to use it from Python scripts. Simply have them in the same directory as your Python script(s) and the script(s) should find the library.
 
 Hardware usage instructions
 ---------------------------
@@ -24,7 +49,7 @@ for details.
 Hook up the computer to the Data OUT port on the controller.
 Use a THREE WIRE CABLE to the DATA OUT port.
 Set the controller to AUTOTRACK, either by pushing the button manually or
-    by issuing the set_autotrack_ON command.
+    by issuing the set_autotrack_ON() command from the library.
 Set the SDA-100 controller Data Out port to 1200 baud (more bulletproof).
 
 Library Functions
@@ -58,16 +83,50 @@ controller. At least those buttons we can control remotely. Try:
 gui.py
 ```
 
-Note that AUTOTRACK must be turned ON for most of the functions to work.
-Notable exceptions are "Retract" and "Calibrate" which work in any case.
+The controller must be in AUTOTRACK mode for most of the commands to work.
+Homing/Retracting the elements will take it out of AUTOTRACK mode, you then
+must issue an AUTOTRACK ON command or activate a GUI button to re-enable
+AUTOTRACK before the controller will accept most commands. When NOT in
+AUTOTRACK mode only the CALIBRATE and RETRACT commands will work.
+
+When not in AUTOTRACK mode the controller should NOT track the frequency
+of an attached radio either.
+
+For those remote'ing their SteppIR controller: It can remember the state of
+the power switch but takes up to 3 minutes while powered-up to memorize the
+power state. After three minutes of being powered-up, removing power and
+then re-applying it should cause the controller to power back up.
+
+Loss of power while tuning the antenna can get the controller out of sync
+with the positioning of the antenna elements. You'll need to issue the
+CALIBRATE command in this case.
+
+Before shutting off power to the controller manually, issue the RETRACT (Home)
+command. Note that you must issue the AUTOTRACK ON command (or push the button
+to enable it on the controller) to regain full remote control afterwards.
+Also, if doing this from the GUI you may need to use BAND UP before the unit
+starts tuning to the correct frequencies.
+
+
+Use the Data Out connector for the full feature set. You can perform all
+functions below if using that connector. Only use a 3-wire connection at the
+DE-9 connector as some of the pins have +5V or TTL levels and you could cause
+damage by hooking up a 5/7/9-pin serial cable. I bought an FTDI-based
+USB->serial cable with bare wires at one end and trimmed back all wires except
+RXD/TXD/GND. I soldered those to a DE-9 female connector and it worked just
+fine. The controller can be set to a baud rate of 1200 to 19.2k baud. Setting
+a higher baud rate than 19.2k results in an actual setting of 19.2k baud.  For
+robustness of the control link I suggest one of the low baud rates.
+
+There can be as much as a 1 second delay from a SET command before variables
+are updated as returned from a STATUS command. There should be at least 100ms
+between commands sent to the controller. This library includes time delays in
+the appropriate places to prevent sending commands to the controller too
+quickly. Don't issue the Status command to the controller more often than 10
+times per second.
 
 I'm still working on feedback between the library and the GUI so we know
-which commands worked and when the H/W unit is tuning.
-
-After you issue the retract_antenna() command and it completes, you must
-enable AUTOTRACK before software can command the controller again. Also,
-if doing this from the GUI you may need to use BAND UP before the unit
-starts tuning to the correct frequencies.
+when commands are accepted/completed when the H/W unit is tuning the antenna.
 
 You'll sometimes see messages similar to this:
 

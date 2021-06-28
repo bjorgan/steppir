@@ -34,6 +34,8 @@ CALIBRATE command in this case.
 Before shutting off power to the controller manually, issue the RETRACT (Home)
 command. Note that you must issue the AUTOTRACK ON command (or push the button
 to enable it on the controller) to regain full remote control afterwards.
+Also, if doing this from the GUI you may need to use BAND UP before the unit
+starts tuning to the correct frequencies.
 
 Use the Data Out connector for the full feature set. You can perform all
 functions below if using that connector. Only use a 3-wire connection at the
@@ -51,6 +53,9 @@ between commands sent to the controller. This library includes time delays in
 the appropriate places to prevent sending commands to the controller too
 quickly. Don't issue the Status command to the controller more often than 10
 times per second.
+
+I'm still working on feedback between the library and the GUI so we know
+when commands are accepted/completed when the H/W unit is tuning the antenna.
 """
 
 
@@ -355,18 +360,18 @@ class SteppIR:
             Current frequency in Hz
         """
 
-	done = False
-	loops = 0
-	while (done == False) & (loops < 3):
+        done = False
+        loops = 0
+        while (done == False) & (loops < 3):
 
-	    loops += 1
+            loops += 1
 
             (frequency, active_motors, direction, dir_label, version) = self.get_status()
 
             if frequency != 0:
                 done = True;
             else:
-                print("Didn't get frequency, iteration:", loops, frequency, frequency_temp)
+                print("Didn't get frequency, iteration:", loops, frequency, frequency)
 
         return frequency
 
