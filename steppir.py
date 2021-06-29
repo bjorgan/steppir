@@ -406,7 +406,7 @@ class SteppIR:
             self.set_parameters(frequency, direction, '1')
 
             # Wait to assure status gets updated in the controller
-            time.sleep(0.9)
+            time.sleep(0.75)
 
             # Check frequency and direction to assure they were set correctly.
             (frequency_temp, active_motors, direction, dir_label, version) = self.get_status()
@@ -447,7 +447,7 @@ class SteppIR:
             self.set_parameters(frequency, 0x00, '1')
 
             # Wait to assure status gets updated in the controller
-            time.sleep(0.9)
+            time.sleep(0.75)
 
             # Check direction to assure it was set correctly
             (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
@@ -487,7 +487,7 @@ class SteppIR:
             self.set_parameters(frequency, 0x40, '1')
  
             # Wait to assure status gets updated in the controller
-            time.sleep(0.9)
+            time.sleep(0.75)
 
             # Check direction to assure it was set correctly
             (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
@@ -528,7 +528,7 @@ class SteppIR:
             self.set_parameters(frequency, 0x80, '1')
  
             # Wait to assure status gets updated in the controller
-            time.sleep(0.9)
+            time.sleep(0.75)
 
             # Check direction to assure it was set correctly
             (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
@@ -569,7 +569,7 @@ class SteppIR:
             self.set_parameters(frequency, 0x20, '1')
 
             # Wait to assure status gets updated in the controller
-            time.sleep(0.9)
+            time.sleep(0.75)
 
             # Check direction to assure it was set correctly
             (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
@@ -652,7 +652,7 @@ class SteppIR:
         (frequency, active_motors, direction, dir_label, version) = self.get_status()
 
         # Wait to assure status gets updated in the controller
-        time.sleep(0.9)
+        time.sleep(0.75)
 
         # Retract tapes
         self.set_parameters(frequency, direction, 'S')
@@ -664,7 +664,7 @@ class SteppIR:
             loops += 1
  
             # Wait to assure status gets updated in the controller
-            time.sleep(0.9)
+            time.sleep(0.75)
 
             # Check that motors aren't busy
             (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
@@ -696,7 +696,7 @@ class SteppIR:
         (frequency, active_motors, direction, dir_label, version) = self.get_status()
  
         # Wait to assure status gets updated in the controller
-        time.sleep(0.9)
+        time.sleep(0.75)
 
         # Calibrate the antenna to the controller
         self.set_parameters(frequency, direction, 'V')
@@ -708,7 +708,7 @@ class SteppIR:
             loops += 1
  
             # Wait to assure status gets updated in the controller
-            time.sleep(0.9)
+            time.sleep(0.75)
 
             # Check that motors aren't busy
             (frequency_temp, active_motors, direction_temp, dir_label, version) = self.get_status()
