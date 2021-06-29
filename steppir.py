@@ -159,12 +159,12 @@ class SteppIR:
         """
         Get current parameters from SteppIR controller.
 
-	The controller returns 11 bytes: We break them out into individual
-	parameters and return them to the calling function. This "get_status"
-	function is used by all functions in this library that need status
-	from the controller.
+        The controller returns 11 bytes: We break them out into individual
+        parameters and return them to the calling function. This "get_status"
+        function is used by all functions in this library that need status
+        from the controller.
 
-	This command does NOT retry automatically.
+        This command does NOT retry automatically.
 
         Parameters:
         -----------
@@ -235,11 +235,11 @@ class SteppIR:
             # Active Motors. I couldn't figure out the mapping for each motor from
             # the docs. Any info on this mapping would be appreciated. So far I'm
             # seeing 0x07 for this parameter when the motors are busy. There are
-	    # four bits defined in the docs plus another note that says this byte
-	    # will get set to 0xff (all bits set) to acknowledge successful receipt
-	    # of a command. For a DB18e antenna there are six stepper motors, most
-	    # likely driven in pairs, so that would result in 3 bits being set if
-	    # all motors are busy.
+            # four bits defined in the docs plus another note that says this byte
+            # will get set to 0xff (all bits set) to acknowledge successful receipt
+            # of a command. For a DB18e antenna there are six stepper motors, most
+            # likely driven in pairs, so that would result in 3 bits being set if
+            # all motors are busy.
             active_motors = message[6]
 
             # Direction (or wavelength for verticals)
@@ -265,24 +265,24 @@ class SteppIR:
         """
         Send parameters to the SteppIR controller.
 
-	Here we send exactly 10 bytes to the controller. This "set_parameters"
-	function is used by all other functions in this library that need to send
-	something to the controller. Always set a valid frequency when sending
-	the set_parameters command.
+        Here we send exactly 10 bytes to the controller. This "set_parameters"
+        function is used by all other functions in this library that need to send
+        something to the controller. Always set a valid frequency when sending
+        the set_parameters command.
 
-	This command does NOT retry automatically.
+        This command does NOT retry automatically.
 
-	Requesting status immediately after a command: The controller sets the "ac"
+        Requesting status immediately after a command: The controller sets the "ac"
         byte (retrieved via the "get_status" command) to 0xff when it receives a
-	valid command string. It clears "ac" (minus the motor busy bits) when it is
-	done processing a command. Consider "frequency", "direction", and "ac" bytes
-	valid only when "ac" is NOT equal to 0xff. These may be SDA-2000 features
-	and not included in the SDA-100 protocol?
+        valid command string. It clears "ac" (minus the motor busy bits) when it is
+        done processing a command. Consider "frequency", "direction", and "ac" bytes
+        valid only when "ac" is NOT equal to 0xff. These may be SDA-2000 features
+        and not included in the SDA-100 protocol?
 
-	If "direction" is 0xc0, the byte preceeding it (called "pa", always 0x00 in
-	the code below) selects antenna pattern 0 through 15. This hasn't been tried
-	in the code yet but should correspond to hex numbers 0x00 to 0x0F. 0x00 is
-	the default direction for "pa". May be an SDA-2000 only feature?
+        If "direction" is 0xc0, the byte preceeding it (called "pa", always 0x00 in
+        the code below) selects antenna pattern 0 through 15. This hasn't been tried
+        in the code yet but should correspond to hex numbers 0x00 to 0x0F. 0x00 is
+        the default direction for "pa". May be an SDA-2000 only feature?
 
         Parameters:
         -----------
@@ -326,8 +326,8 @@ class SteppIR:
             frequency /= 10
 
             # Create byte array for the frequency. Note that this creates four
-	    # bytes but the first byte will always be 0x00, as the protocol
-	    # doc requires.
+            # bytes but the first byte will always be 0x00, as the protocol
+            # doc requires.
             hex_frequency = struct.pack('>i', int(frequency))
 
             cmd2 = bytes(command, 'utf-8')  # Multiple bytes
@@ -348,7 +348,7 @@ class SteppIR:
         """
         Get current frequency in Hz.
 
-	This command retries automatically.
+        This command retries automatically.
 
         Parameters:
         -----------
@@ -381,7 +381,7 @@ class SteppIR:
         """
         Set new frequency, in Hz.
 
-	This command retries automatically.
+        This command retries automatically.
 
         Parameters:
         -----------
@@ -421,9 +421,9 @@ class SteppIR:
     def set_dir_normal(self):
         """
         Set the beam direction to "normal" (0x00) or a vertical antenna to
-	its normal wavelength.
+    	its normal wavelength.
 
-	This command retries automatically.
+        This command retries automatically.
 
         Parameters:
         -----------
@@ -463,7 +463,7 @@ class SteppIR:
         """
         Set the beam direction to "180" (0x40) from normal.
 
-	This command retries automatically.
+        This command retries automatically.
 
         Parameters:
         -----------
@@ -502,9 +502,9 @@ class SteppIR:
     def set_dir_bidirectional(self):
         """
         Set the direction to "Bidirectional" (0x80) (normal and reverse
-	directions at the same time).
+        directions at the same time).
 
-	This command retries automatically.
+        This command retries automatically.
 
         Parameters:
         -----------
@@ -543,9 +543,9 @@ class SteppIR:
     def set_dir_3_4(self):
         """
         Set a vertical antenna to 3/4 wavelength (0x20). Not applicable to
-	beam antennas.
+    	beam antennas.
 
-	This command retries automatically.
+    	This command retries automatically.
 
         Parameters:
         -----------
@@ -584,9 +584,9 @@ class SteppIR:
     def set_autotrack_ON(self):
         """
         Turn ON AUTOTRACK. Must re-enable using this command after a
-	Home/Retract command.
+        Home/Retract command.
 
-	This command does NOT retry automatically.
+        This command does NOT retry automatically.
 
         Parameters:
         -----------
@@ -608,12 +608,12 @@ class SteppIR:
     def set_autotrack_OFF(self):
         """
         Turn OFF AUTOTRACK. With AUTOTRACK off only these commands will be
-	accepted by the controller over the serial port:
-		AUTOTRACK ON
-		CALIBRATE
-		RETRACT
+    	accepted by the controller over the serial port:
+            AUTOTRACK ON
+            CALIBRATE
+            RETRACT
 
-	This command does NOT retry automatically.
+    	This command does NOT retry automatically.
 
         Parameters:
         -----------
@@ -636,8 +636,8 @@ class SteppIR:
         """
         Retract antenna elements into the controller hubs ("Home").
 
-	This command does NOT retry automatically but it does wait until the motors
-	are not busy.
+    	This command does NOT retry automatically but it does wait until the motors
+    	are not busy.
 
         Parameters:
         -----------
@@ -680,8 +680,8 @@ class SteppIR:
         """
         Calibrate the antenna to the controller.
 
-	This command does NOT retry automatically but it does wait until the
-	motors are not busy.
+    	This command does NOT retry automatically but it does wait until the
+    	motors are not busy.
 
         Parameters:
         -----------
