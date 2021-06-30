@@ -181,7 +181,7 @@ class SteppIR:
 	    has just been given a command to process.
 		Bit 0x01 Is always a '1'
 		Bit 0x02
-		Bit 0x04 Appears to indicate AUTOTRACK mode ON/OFF
+		Bit 0x04 Appears to indicate AUTOTRACK mode ON/OFF?
 		Bit 0x08
 		Bit 0x10
 		Bit 0x20
