@@ -2,10 +2,28 @@
 
 # A Python/Tkinter GUI which roughly simulates a SteppIR SDA-100 controller.
 #
-# This version creates a client socket connection to a radio's CAT port at
-# port 29090, and a listening CAT port at 19090 for various clients to connect
-# to (Fldigi, Wsjt-x, Js8call, etc). It controls an SDA-100 controller on a
-# serial port (which may be remotely located using "socat").
+# This version has:
+#
+# 1) A CLIENT socket connection to a radio's CAT port at port 21000.
+#
+# 2) A SERVER socket for a CAT port at 19090 for various clients to connect
+#    to (Fldigi, Wsjt-x, Js8call, etc).
+#
+# 3) A GUI full of buttons which can control an SDA-100 controller and display
+#    the current frequency the antenna is tuned to.
+#
+# 4) Serial control of an SDA-100 controller by use of the steppir.py" library
+#    (included). This serial port can be remotely located via "socat".
+#
+# A separate thread each is used for #1, #2, #3, and #4 above.
+#
+# Data received via the server port gets forwarded to the client CAT port.
+# Data received via the client CAT port gets forwarded to the server port, and
+# is parsed for frequency data: If frequency data is found that data is sent
+# via the serial port to the SDA-100 SteppIR controller.
+#
+# Buttons pushed on the GUI affect the SteppIR controller directly and enable/
+# disable tuning the SteppIR beam via data received from the other ports.
 
 
 import tkinter as tk
@@ -15,17 +33,22 @@ from threading import Thread
 import socket
 
 
+# Adjust these for your radio's CAT port. Port CANNOT be the same as the
+# CAT_LISTENER_PORT below.
 RADIO_HOST = "127.0.0.1"
 RADIO_CAT_PORT = 21000
-#RADIO_CAT_PORT = 19090
 
+# Port that software which wishes to control the radio will connect to.
+# Things like WSJT-X, Fldigi, Js8call, etc.
 CAT_HOST = "127.0.0.1"
 CAT_LISTENER_PORT = 19090
-#CAT_LISTENER_PORT = 29090
+
+# Serial port parameters
+SERIAL_PORT = "/dev/ttyUSB0"
+BAUD_RATE = 1200
 
 
-
-
+ 
 class SteppirApp(tk.Frame):
 
     # Class variables
@@ -103,7 +126,7 @@ class SteppirApp(tk.Frame):
 
     # Frequency + 10kHz
     def up_10khz(self):
-        print("frequency + 10 kHz")
+        #print("frequency + 10 kHz")
         (frequency) = step.get_frequency()
         frequency += 10000
         freq_mhz = frequency / 1000000
@@ -113,56 +136,56 @@ class SteppirApp(tk.Frame):
 
     # Frequency - 10 kHz
     def down_10khz(self):
-        print("frequency - 10 kHz")
+        #print("frequency - 10 kHz")
         (frequency) = step.get_frequency()
         frequency -= 10000
         freq_mhz = frequency / 1000000
-        print("New Frequency %5.3f MHz" % freq_mhz)
+        #print("New Frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%6.3f MHz" % freq_mhz)
 
     # Frequency + 100 kHz
     def up_100khz(self):
-        print("frequency + 100 kHz")
+        #print("frequency + 100 kHz")
         (frequency) = step.get_frequency()
         frequency += 100000
         freq_mhz = frequency / 1000000
-        print("New Frequency %5.3f MHz" % freq_mhz)
+        #print("New Frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%6.3f MHz" % freq_mhz)
 
     # Frequency - 100 kHz
     def down_100khz(self):
-        print("frequency - 100 kHz")
+        #print("frequency - 100 kHz")
         (frequency) = step.get_frequency()
         frequency -= 100000
         freq_mhz = frequency / 1000000
-        print("New Frequency %5.3f MHz" % freq_mhz)
+        #print("New Frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%6.3f MHz" % freq_mhz)
  
     # Frequency + 1 MHz
     def up_1mhz(self):
-        print("frequency + 1 MHz")
+        #print("frequency + 1 MHz")
         (frequency) = step.get_frequency()
         frequency += 1000000
         freq_mhz = frequency / 1000000
-        print("New Frequency %5.3f MHz" % freq_mhz)
+        #print("New Frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%6.3f MHz" % freq_mhz)
  
     # Frequency - 1 MHz
     def down_1mhz(self):
-        print("frequency - 1 MHz")
+        #print("frequency - 1 MHz")
         (frequency) = step.get_frequency()
         frequency -= 1000000
         freq_mhz = frequency / 1000000
-        print("New Frequency %5.3f MHz" % freq_mhz)
+        #print("New Frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%6.3f MHz" % freq_mhz)
 
     def band_up(self):
-        print("band up")
+        #print("band up")
         (frequency) = step.get_frequency()
         if frequency  <   7300001:  # 40 meters
             frequency =  10100000   # 30 meter bottom
@@ -181,12 +204,12 @@ class SteppirApp(tk.Frame):
         elif frequency < 54000001:  # 6 meters
             frequency =   7000000   # 40 meter bottom
         freq_mhz = frequency / 1000000
-        print("New frequency %5.3f MHz" % freq_mhz)
+        #print("New frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%6.3f MHz" % freq_mhz)
  
     def band_down(self):
-        print("band down")
+        #print("band down")
         (frequency) = step.get_frequency()
         if frequency >   49999999:  # 6 meters
             frequency =  28000000   # 10 meter bottom
@@ -205,50 +228,50 @@ class SteppirApp(tk.Frame):
         elif frequency >  6999999:  # 40 meters
             frequency =  50000000   # 6 meter bottom
         freq_mhz = frequency / 1000000
-        print("New frequency %5.3f MHz" % freq_mhz)
+        #print("New frequency %5.3f MHz" % freq_mhz)
         step.set_frequency(frequency)
         self.display.config(text="%6.3f MHz" % freq_mhz)
 
     def autotrack_on(self):
-        print("autotrack ON")
+        #print("autotrack ON")
         step.set_autotrack_ON()
 
     def autotrack_off(self):
-        print("autotrack OFF")
+        #print("autotrack OFF")
         step.set_autotrack_OFF()
 
     def retract(self):
-        print("retract")
+        #print("retract")
         step.retract_antenna()
  
     def calibrate(self):
-        print("calibrate")
+        #print("calibrate")
         step.calibrate_antenna()
 
     # If frequency = 0, elements are "Homed" 
     def direction_normal(self):
-        print("direction: normal")
+        #print("direction: normal")
         step.set_dir_normal()
         (frequency) = step.get_frequency()
-        print("Frequency", frequency)
+        #print("Frequency", frequency)
         self.display.config(text=frequency)
         freq_mhz = frequency / 1000000
         self.display.config(text="%6.3f MHz" % freq_mhz)
 
     def direction_180(self):
-        print("direction: 180")
+        #print("direction: 180")
         step.set_dir_180()
         (frequency) = step.get_frequency()
-        print("Frequency", frequency)
+        #print("Frequency", frequency)
         self.display.config(text=frequency)
         freq_mhz = frequency / 1000000
         self.display.config(text="%6.3f MHz" % freq_mhz)
 
     def direction_bi(self):
-        print("direction: bidirectional")
+        #print("direction: bidirectional")
         step.set_dir_bidirectional()
         (frequency) = step.get_frequency()
-        print("Frequency", frequency)
+        #print("Frequency", frequency)
         self.display.config(text=frequency)
         freq_mhz = frequency / 1000000
         self.display.config(text="%6.3f MHz" % freq_mhz)
@@ -275,7 +298,7 @@ class RadioCATLoop(Thread):
     # Run a thread asynchronously
     def run(self):
         self.receive_buffer = 0x00
-        print("    Starting Radio CAT listener")
+        #print("    Starting Radio CAT listener")
         last_frequency = 0
         while True:
             # Open network port to CAT port of linHPSDR S/W
@@ -294,13 +317,17 @@ class RadioCATLoop(Thread):
                             frequency = int(f_temp) # Frequency in Hz
                             freq_mhz = frequency / 1000000
                             if last_frequency != frequency:
-                                print("    Changing frequency")
+                                #print("    Changing frequency")
                                 last_frequency = frequency
                                 text="%8.6f MHz" % freq_mhz
-                                print('Received', text)
-                                print("New Frequency %5.3f MHz" % freq_mhz)
+                                #print('Received', text)
+                                #print("New Frequency %5.3f MHz" % freq_mhz)
+
                                 # Send new frequency to the SteppIR
-#                                step.set_frequency(frequency)
+#                               step.set_frequency(frequency)
+                                steppir_serial_thread.serial_bytes = frequency    # Frequency data
+                                steppir_serial_thread.serial_send = True  # Send to steppir_serial_thread
+
                                 # Update the GUI frequency display
                                 app.display.config(text="%6.3f MHz" % freq_mhz)
 
@@ -319,22 +346,6 @@ class RadioCATLoop(Thread):
 
 
 
-class SteppirStatusLoop(Thread):
-    # Continuously checks the status of the SteppIR controller and updates
-    # status in the GUI to match.
-
-    def __init__(self, process_name):
-        super().__init__()
-        self.process_name = process_name
-
-    # Run a thread asynchronously
-    def run(self):
-        while stop_threads == False:
-            print("            SteppIR Status Processing")
-            time.sleep(1.0)
-
-
-
 class ClientCATLoop(Thread):
     # Handles the client CAT interface. Handles connections to port
     # from various clients trying to control the CAT port like: Fldigi,
@@ -350,9 +361,8 @@ class ClientCATLoop(Thread):
 
     # Run a listener thread asynchronously
     def run(self):
-#        send_buffer = 0x00 
         self.receive_buffer = 0x00
-        print("    Starting Client CAT listener")
+        #print("    Starting Client CAT listener")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as self.s:
 #            self.s.settimeout(60.0)   # Timeout for listening in seconds
             self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -372,7 +382,6 @@ class ClientCATLoop(Thread):
 
                             # Send data out the Radio socket (if any)
                             if radio_CAT_thread:
-#                            if radio_CAT_thread.s != 0:
                                 radio_CAT_thread.s.send(self.receive_buffer)
                             else:
                                 print("No radio thread to send to")
@@ -381,8 +390,6 @@ class ClientCATLoop(Thread):
                                 break
                             if stop_threads == True:
                                 self.stop()
-
-#                            time.sleep(0.1)
 
                 except socket.timeout:
                     print("    Listener socket timeout")
@@ -393,20 +400,64 @@ class ClientCATLoop(Thread):
 
 
 
+# This thread is not currently used.
+class SteppirStatusLoop(Thread):
+    # Continuously checks the status of the SteppIR controller and updates
+    # status in the GUI to match.
+
+    def __init__(self, process_name):
+        super().__init__()
+        self.process_name = process_name
+
+    # Run a thread asynchronously
+    def run(self):
+        while stop_threads == False:
+            #print("            SteppIR Status Processing")
+            time.sleep(1.0)
+
+
+
+class SteppirSerialLoop(Thread):
+    # Sends/receives data over a serial port to communicate with a SteppIR
+    # SDA-100 controller. This may receive tune-frequency data from the
+    # ClientCATLoop or RadioCATLoop threads. This code was put into a separate
+    # thread because the serial communication is much too slow to have it get
+    # in the way of the socket communications of the other threads.
+
+    serial_send = False
+    serial_bytes = 0x00 # Frequency data
+
+    def __init__(self, process_name):
+        super().__init__()
+        self.process_name = process_name
+
+    # Run a thread asynchronously
+    def run(self):
+        while stop_threads == False:
+            if self.serial_send == True:
+                #print("            SteppIR Serial Processing")
+                # Send new frequency to the SteppIR
+                step.set_frequency(self.serial_bytes) # Send frequency
+                self.serial_send = False
+                time.sleep(1.0)
+
+
+
 # Start of main program
 #
-step = steppir.SteppIR('/dev/ttyUSB0',  # port
-    1200,   # baudrate
-    8,      # bytesize
-    'N',    # parity
-    1,      # stopbits
-    2.0,    # read_timeout
-    False,  # xonxoff
-    False,  # rtscts
-    2.0,    # write_timeout
-    False,  # dsrdtr
-    None,   # inter_byte_timeout
-    None)   # exclusive
+step = steppir.SteppIR(
+    SERIAL_PORT,# port
+    BAUD_RATE,  # baudrate
+    8,          # bytesize
+    'N',        # parity
+    1,          # stopbits
+    2.0,        # read_timeout
+    False,      # xonxoff
+    False,      # rtscts
+    2.0,        # write_timeout
+    False,      # dsrdtr
+    None,       # inter_byte_timeout
+    None)       # exclusive port access
 
 # Start up processing thread(s)
 stop_threads = False
@@ -416,6 +467,9 @@ client_CAT_thread.start()
 
 radio_CAT_thread = RadioCATLoop("Radio")
 radio_CAT_thread.start()
+
+steppir_serial_thread = SteppirSerialLoop("Serial")
+steppir_serial_thread.start()
 
 #steppir_monitor_thread = SteppirStatusLoop("SteppIR")
 #steppir_monitor_thread.start()
@@ -429,6 +483,7 @@ app.mainloop()
 stop_threads = True
 client_CAT_thread.join()
 radio_CAT_thread.join()
+steppir_serial_thread.join()
 #steppir_monitor_thread.join()
 
 
