@@ -80,7 +80,7 @@ Included is a Pyton/Tkinter GUI which roughly simulates a SteppIR SDA-100
 controller. At least those buttons we can control remotely. Try:
 
 ```
-gui.py
+steppir-gui.py
 ```
 
 The controller must be in AUTOTRACK mode for most of the commands to work.
