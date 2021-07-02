@@ -24,6 +24,11 @@
 #
 # Buttons pushed on the GUI affect the SteppIR controller directly and enable/
 # disable tuning the SteppIR beam via data received from the other ports.
+#
+# TODO: Changing the radio frequency too quickly can result in the SteppIR
+# frequency being out-of-sync with the radio frequency. Should query the
+# SteppIR frequency periodically and set it to a master frequency set by
+# either the Client port or the Radio.
 
 
 import tkinter as tk
@@ -332,10 +337,10 @@ class RadioCATLoop(Thread):
                                 app.display.config(text="%6.3f MHz" % freq_mhz)
 
                         # Echo received data out ClientCATLoop server port 
-                        if client_CAT_thread:
+                        if client_CAT_thread and client_CAT_thread.conn:
                             client_CAT_thread.conn.send(self.receive_buffer)
-                        else:
-                            print("No client thread to send to")
+                        #else:
+                            #print("No client thread to send to")
 
                 except socket.timeout:
                     print("    Radio socket timeout")
@@ -343,6 +348,35 @@ class RadioCATLoop(Thread):
                 except:
                     print("    Radio socket problem")
                     raise
+
+
+
+class RadioQueryLoop(Thread):
+    # If there's no CAT controller connected to the server
+    # port, send "FA;" through periodically (query the
+    # radio's frequency). Send the radio's response to the
+    # SteppIR controller. For this particular case the
+    # radio controls the SteppIR frequency.
+
+    def __init__(self, process_name):
+        super().__init__()
+        self.process_name = process_name
+
+    # Run a thread asynchronously
+    def run(self):
+        #print("    Starting Radio Query Loop")
+        # Wait for other threads to come up / get connected
+        time.sleep(5.0)
+        while stop_threads == False:
+            # If no CAT controller is currently connected
+            if not client_CAT_thread or not client_CAT_thread.conn:
+                #print("Sending frequency query to radio")
+                # Send data out the Radio socket (if any)
+                if radio_CAT_thread:
+                    radio_CAT_thread.s.send(b'FA;')
+                #else:
+                #    print("No radio thread to send to")
+                time.sleep(5.0)
 
 
 
@@ -373,6 +407,7 @@ class ClientCATLoop(Thread):
             # unless stop_threads == True
             while stop_threads == False:
                 try:
+                    self.conn = 0   # Need this so other threads can test for socket
                     self.conn, addr = self.s.accept() # Accept one client connection
                     with self.conn:
                         print('    Connected by', addr)
@@ -468,6 +503,9 @@ client_CAT_thread.start()
 radio_CAT_thread = RadioCATLoop("Radio")
 radio_CAT_thread.start()
 
+radio_query_thread = RadioQueryLoop("Radio Query")
+radio_query_thread.start()
+
 steppir_serial_thread = SteppirSerialLoop("Serial")
 steppir_serial_thread.start()
 
@@ -483,6 +521,7 @@ app.mainloop()
 stop_threads = True
 client_CAT_thread.join()
 radio_CAT_thread.join()
+radio_query_thread.join()
 steppir_serial_thread.join()
 #steppir_monitor_thread.join()
 
