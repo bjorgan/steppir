@@ -65,13 +65,13 @@ class SteppirApp(tk.Frame):
         self.config(bg="Black")
         self.grid()
         self.create_widgets()
-        (frequency) = step.get_frequency()
-        freq_mhz = frequency / 1000000
-        self.display.config(text="%6.3f MHz" % freq_mhz)
-        (frequency) = step.get_frequency()
-        freq_mhz = frequency / 1000000
-        print("Frequency %5.3f MHz" % freq_mhz)
-        self.display.config(text="%6.3f MHz" % freq_mhz)
+#        (frequency) = step.get_frequency()
+#        freq_mhz = frequency / 1000000
+#        self.display.config(text="%6.3f MHz" % freq_mhz)
+#        (frequency) = step.get_frequency()
+#        freq_mhz = frequency / 1000000
+#        print("Frequency %5.3f MHz" % freq_mhz)
+#        self.display.config(text="%6.3f MHz" % freq_mhz)
 
     def create_widgets(self):
 
@@ -503,8 +503,15 @@ client_CAT_thread.start()
 radio_CAT_thread = RadioCATLoop("Radio")
 radio_CAT_thread.start()
 
-radio_query_thread = RadioQueryLoop("Radio Query")
-radio_query_thread.start()
+# Note: Cannot run this while a CAT control program is connected to the
+# listening port, else they'll interact and the CAT control program may get
+# upset and disconnect. WSJT-X does this. Need to enable this thread only when
+# nothing is connected to the listening port, and kill this thread when
+# something connects there. By doing that we'll be able to control the SteppIR
+# from the radio when nothing else is controlling the radio.
+#
+#radio_query_thread = RadioQueryLoop("Radio Query")
+#radio_query_thread.start()
 
 steppir_serial_thread = SteppirSerialLoop("Serial")
 steppir_serial_thread.start()
@@ -521,7 +528,7 @@ app.mainloop()
 stop_threads = True
 client_CAT_thread.join()
 radio_CAT_thread.join()
-radio_query_thread.join()
+#radio_query_thread.join()
 steppir_serial_thread.join()
 #steppir_monitor_thread.join()
 
